@@ -1,0 +1,511 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Product Catalog Prototype</title>
+    <style>
+      :root {
+        --bg: #f5f5f7;
+        --sidebar: #e4e4ef;
+        --panel: #ffffff;
+        --border: #e4e4e8;
+        --text: #262626;
+        --muted: #777;
+        --tab: #6a7be7;
+        --tab-underline: #5c73e9;
+        --button: #3f5bd9;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: var(--text);
+        background: var(--bg);
+        overflow: hidden;
+      }
+
+      .app {
+        display: grid;
+        grid-template-columns: 220px 1fr;
+        min-height: 100vh;
+      }
+
+      .sidebar {
+        background: var(--sidebar);
+        border-right: 1px solid #d7d7e0;
+        padding: 10px 10px 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow-y: auto;
+      }
+
+      .workspace {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #fff;
+        border: 1px solid #dadce8;
+        border-radius: 8px;
+        padding: 8px 10px;
+        margin-bottom: 6px;
+        font-weight: 600;
+      }
+
+      .nav {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .nav-group {
+        margin-top: auto;
+      }
+
+      .nav a {
+        text-decoration: none;
+        color: #343434;
+        padding: 8px 10px;
+        border-radius: 9px;
+        font-size: 15px;
+      }
+
+      .nav a.active {
+        background: #fff;
+        box-shadow: inset 0 0 0 1px #dedee8;
+        font-weight: 600;
+      }
+
+      .main {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      .topbar {
+        height: 58px;
+        min-height: 58px;
+        flex: 0 0 58px;
+        border-bottom: 1px solid var(--border);
+        background: #ececf5;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 16px;
+        padding: 0 20px;
+        font-size: 14px;
+      }
+
+      .search {
+        border: 1px solid #d7d7de;
+        background: #fff;
+        border-radius: 10px;
+        color: #9b9b9b;
+        padding: 6px 12px;
+        min-width: 190px;
+      }
+
+      .content {
+        padding: 0 14px 14px;
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+      }
+
+      .panel {
+        border: 1px solid #d9d9df;
+        border-radius: 10px;
+        background: var(--panel);
+        min-height: calc(100vh - 84px);
+      }
+
+      .breadcrumb {
+        border-bottom: 1px solid var(--border);
+        color: #8f8f8f;
+        padding: 14px 24px;
+        font-size: 13px;
+      }
+
+      .crumb-current {
+        color: #3c3c3c;
+        font-weight: 600;
+      }
+
+      .section {
+        padding: 24px;
+      }
+
+      h1 {
+        margin: 0 0 18px;
+        font-size: 32px;
+        line-height: 1.15;
+      }
+
+      .tabs {
+        display: flex;
+        gap: 18px;
+        border-bottom: 1px solid var(--border);
+        margin-bottom: 18px;
+      }
+
+      .tab {
+        border: 0;
+        background: transparent;
+        padding: 0 0 11px;
+        margin: 0;
+        font-size: 15px;
+        color: #6f6f75;
+        cursor: pointer;
+      }
+
+      .tab.active {
+        color: var(--tab);
+        border-bottom: 3px solid var(--tab-underline);
+        font-weight: 600;
+      }
+
+      .badge {
+        display: inline-block;
+        margin-left: 6px;
+        padding: 1px 4px;
+        border-radius: 5px;
+        font-size: 10px;
+        background: #e1e6ff;
+        color: #5f6fe2;
+        vertical-align: middle;
+      }
+
+      .headline-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+      }
+
+      .copy {
+        font-size: 14px;
+        line-height: 1.35;
+        color: #333;
+        margin: 0 0 22px;
+      }
+
+      .primary {
+        border: 0;
+        border-radius: 14px;
+        background: linear-gradient(#4360e3, #3752cd);
+        color: #fff;
+        font-size: 15px;
+        font-weight: 700;
+        padding: 8px 14px;
+      }
+
+      .table-wrap {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        overflow: hidden;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+      }
+
+      th,
+      td {
+        border-bottom: 1px solid var(--border);
+        border-right: 1px solid var(--border);
+        padding: 10px 12px;
+        text-align: left;
+        vertical-align: middle;
+      }
+
+      th:last-child,
+      td:last-child {
+        border-right: 0;
+      }
+
+      tr:last-child td {
+        border-bottom: 0;
+      }
+
+      th {
+        font-size: 12px;
+        color: #4d4d4d;
+        background: #f9f9fb;
+      }
+
+      a.row-link {
+        color: #6a7be7;
+        text-decoration: none;
+        font-weight: 600;
+      }
+
+      .status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        border-radius: 999px;
+        background: #daf5e7;
+        color: #198c56;
+        padding: 3px 8px;
+        font-weight: 600;
+      }
+
+      .status::before {
+        content: "+";
+        width: 14px;
+        height: 14px;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 50%;
+        background: #4acb87;
+        color: #fff;
+        font-size: 10px;
+      }
+
+      .subheader {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border);
+        font-size: 20px;
+        font-weight: 700;
+      }
+
+      .light-actions {
+        color: #6a7be7;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .search-row {
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        color: #9a9a9a;
+        padding: 11px 14px;
+        font-size: 14px;
+        margin: 0 0 12px;
+      }
+
+      .view {
+        display: none;
+      }
+
+      .view.active {
+        display: block;
+      }
+
+      @media (max-width: 1200px) {
+        .app {
+          grid-template-columns: 1fr;
+        }
+
+        .sidebar {
+          display: none;
+        }
+
+        h1 {
+          font-size: 28px;
+        }
+
+        .tab {
+          font-size: 13px;
+        }
+
+        .copy {
+          font-size: 14px;
+        }
+
+        table {
+          font-size: 13px;
+        }
+
+        .primary {
+          font-size: 14px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <div class="workspace">Dipsea <span>v</span></div>
+        <nav class="nav">
+          <a href="#">Overview</a>
+          <a href="#">Charts</a>
+          <a href="#">Customers</a>
+          <a class="active" href="#">Product catalog</a>
+          <a href="#">Paywalls</a>
+          <a href="#">Targeting</a>
+          <a href="#">Experiments</a>
+          <a href="#">Web</a>
+          <a href="#">Customer Center</a>
+        </nav>
+        <nav class="nav nav-group">
+          <a href="#">Apps &amp; providers</a>
+          <a href="#">API keys</a>
+          <a href="#">Integrations</a>
+          <a href="#">Project settings</a>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <div class="topbar">
+          <div class="search">Search...</div>
+          <span>Help</span>
+          <span>Account</span>
+        </div>
+
+        <div class="content">
+          <section class="panel">
+            <div class="breadcrumb">
+              Dipsea / Product catalog / <span id="crumb" class="crumb-current">Offerings</span>
+            </div>
+
+            <div class="section">
+              <h1>Product catalog</h1>
+
+              <div class="tabs" role="tablist" aria-label="Catalog tabs">
+                <button class="tab active" data-tab="offerings">Offerings</button>
+                <button class="tab" data-tab="products">Products</button>
+                <button class="tab" data-tab="entitlements">Entitlements</button>
+                <button class="tab" data-tab="virtual-currencies">Virtual currencies <span class="badge">BETA</span></button>
+              </div>
+
+              <div id="offerings" class="view active">
+                <div class="headline-row">
+                  <p class="copy">
+                    Offerings are the selection of products that are "offered" to a customer on your paywall.<br />
+                    They're an optional, but recommended feature of RevenueCat that can make it easier to change and
+                    experiment with your paywalls.
+                  </p>
+                  <button class="primary">+ New offering</button>
+                </div>
+                <p class="copy" style="margin-top: -6px;">Offerings can also be used to test different pricing combinations as variants in an experiment.</p>
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Identifier</th>
+                        <th>Display name</th>
+                        <th>Packages</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr><td><a class="row-link" href="#">default</a></td><td>our standard set of packages</td><td>2 packages</td><td>May 19, 2020</td><td>...</td></tr>
+                      <tr><td><a class="row-link" href="#">experiments2</a></td><td>59.99 and 12.99</td><td>5 packages</td><td>Dec 14, 2020</td><td>...</td></tr>
+                      <tr><td><a class="row-link" href="#">lowcostcountries</a></td><td>Currently India and Mexico</td><td>3 packages</td><td>Jul 27, 2022</td><td>...</td></tr>
+                      <tr><td><a class="row-link" href="#">higher-cost</a></td><td>annual 69.99, monthly 12.99, quarterly 25.99</td><td>4 packages</td><td>Dec 16, 2022</td><td>...</td></tr>
+                      <tr><td><a class="row-link" href="#">lowercost-us-4899</a></td><td>AB test for lowercost us</td><td>2 packages</td><td>Feb 13, 2023</td><td>...</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div id="products" class="view">
+                <div class="headline-row">
+                  <p class="copy">Products are the individual in-app purchases you set up on the store platforms.</p>
+                  <button class="primary">New product</button>
+                </div>
+                <div class="search-row">Search products...</div>
+                <div class="table-wrap">
+                  <div class="subheader">Dipsea <span class="light-actions">+ New &nbsp; Import</span></div>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Product</th>
+                        <th>Status</th>
+                        <th>Entitlements</th>
+                        <th>Created</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr><td><a class="row-link" href="#">com.dipsea.android.annual</a></td><td><span class="status">Published</span></td><td>1 Entitlement</td><td>Jul 22, 2019</td></tr>
+                      <tr><td><a class="row-link" href="#">com.dipsea.android.monthly</a></td><td><span class="status">Published</span></td><td>1 Entitlement</td><td>Jul 22, 2019</td></tr>
+                      <tr><td><a class="row-link" href="#">com.dipsea.android.annual.5999</a></td><td><span class="status">Published</span></td><td>1 Entitlement</td><td>Apr 29, 2021</td></tr>
+                      <tr><td><a class="row-link" href="#">com.dipsea.android.monthly.1299</a></td><td><span class="status">Published</span></td><td>1 Entitlement</td><td>Apr 29, 2021</td></tr>
+                      <tr><td><a class="row-link" href="#">com.dipsea.android.annual.5999.30.day.trial</a></td><td><span class="status">Published</span></td><td>1 Entitlement</td><td>Jun 15, 2021</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div id="entitlements" class="view">
+                <div class="headline-row">
+                  <p class="copy">
+                    An entitlement represents a level of access, features, or content that a customer is "entitled" to.<br />
+                    Many projects only have one entitlement, for example, "Pro access".
+                  </p>
+                  <button class="primary">+ New Entitlement</button>
+                </div>
+                <div class="table-wrap">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Identifier</th>
+                        <th>Display Name</th>
+                        <th>Products</th>
+                        <th>Created</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr><td><a class="row-link" href="#">subscriptions</a></td><td>Subscriptions</td><td>48 products</td><td>Sep 04, 2018</td></tr>
+                      <tr><td><a class="row-link" href="#">gifts</a></td><td>Subscription gifts redeemed</td><td>1 product</td><td>Oct 09, 2020</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div id="virtual-currencies" class="view">
+                <div class="headline-row">
+                  <p class="copy">Virtual currencies view placeholder for prototype.</p>
+                  <button class="primary">+ New Currency</button>
+                </div>
+              </div>
+
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <script>
+      const tabs = document.querySelectorAll(".tab");
+      const views = document.querySelectorAll(".view");
+      const crumb = document.getElementById("crumb");
+
+      const labels = {
+        offerings: "Offerings",
+        products: "Products",
+        entitlements: "Entitlements",
+        "virtual-currencies": "Virtual currencies"
+      };
+
+      tabs.forEach((tab) => {
+        tab.addEventListener("click", () => {
+          const tabName = tab.dataset.tab;
+
+          tabs.forEach((t) => t.classList.toggle("active", t === tab));
+          views.forEach((v) => v.classList.toggle("active", v.id === tabName));
+
+          crumb.textContent = labels[tabName] || "Offerings";
+        });
+      });
+    </script>
+  </body>
+</html>
