@@ -208,6 +208,83 @@ h1 {
   margin-bottom: 0;
 }
 
+.product-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.product-app-label {
+  font-size: 15px;
+  color: #3a3a3a;
+  font-weight: 600;
+}
+
+.detail-top-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.pricing-preview-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pricing-preview-title-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pricing-version-menu-wrap {
+  position: relative;
+}
+
+.pricing-version-trigger {
+  border: 0;
+  background: transparent;
+  color: #6f7489;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0 2px;
+  cursor: pointer;
+}
+
+.pricing-version-menu {
+  position: absolute;
+  top: 18px;
+  right: 0;
+  z-index: 6;
+  border: 1px solid #d7d8e2;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 6px 18px rgba(26, 32, 52, 0.12);
+  min-width: 320px;
+  overflow: hidden;
+}
+
+.pricing-version-item {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid #ececf2;
+  background: #fff;
+  color: #2f2f2f;
+  text-align: left;
+  padding: 9px 11px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.pricing-version-item:last-child {
+  border-bottom: 0;
+}
+
+.pricing-version-item:hover {
+  background: #f6f7ff;
+}
+
 .primary {
   border: 0;
   border-radius: 14px;
@@ -398,6 +475,31 @@ a.row-link {
 .detail-copy {
   margin-top: 10px;
   margin-bottom: 0;
+}
+
+.detail-inline-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.relationship-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.transactions-toggle {
+  color: #7a7a7a;
+  font-size: 13px;
+}
+
+.transaction-flag {
+  display: inline-block;
+  font-size: 11px;
+  color: #8c8c8c;
+  margin-right: 6px;
 }
 
 .source-fields {

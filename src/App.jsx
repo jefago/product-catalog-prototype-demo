@@ -311,7 +311,7 @@ function OfferingsView() {
   );
 }
 
-function ProductsView() {
+function ProductsView({ onOpenProductDetail }) {
   return (
     <div className="view active">
       <div className="headline-row">
@@ -336,7 +336,15 @@ function ProductsView() {
               <tbody>
                 {store.rows.map((row) => (
                   <tr key={row.product}>
-                    <td><a className="row-link" href="#">{row.product}</a></td>
+                    <td>
+                      <button
+                        className="row-link row-link-button"
+                        type="button"
+                        onClick={() => onOpenProductDetail(store.title, row)}
+                      >
+                        {row.product}
+                      </button>
+                    </td>
                     <td><span className="status">Published</span></td>
                     <td>1 Entitlement</td>
                     <td>{row.pricingTemplate}</td>
@@ -349,6 +357,367 @@ function ProductsView() {
         ))}
       </div>
     </div>
+  );
+}
+
+function ProductDetailPage({ product, onBackToProducts }) {
+  const [activeTab, setActiveTab] = useState("setup");
+  const [isPricingVersionMenuOpen, setIsPricingVersionMenuOpen] = useState(false);
+  const [selectedPricingVersionLabel, setSelectedPricingVersionLabel] = useState("Current pricing");
+  const isSubscription = product.productType === "Subscription";
+  const pushTarget = product.appName.includes("(App Store)")
+    ? "App Store"
+    : product.appName.includes("(Play Store)")
+      ? "Play Store"
+      : product.appName.includes("(Stripe)")
+        ? "Stripe"
+        : null;
+
+  return (
+    <section className="panel">
+      <div className="breadcrumb">
+        Dipsea / Product catalog /{" "}
+        <button className="table-action-link detail-breadcrumb-link" type="button" onClick={onBackToProducts}>
+          Products
+        </button>{" "}
+        / <span className="crumb-current">{product.name}</span>
+      </div>
+      <div className="section">
+        <div className="headline-row detail-header-row">
+          <div>
+            <h1>{product.name}</h1>
+            <div className="product-meta-row">
+              <span className="product-app-label">{product.appName}</span>
+              <span className="status">{product.status}</span>
+            </div>
+          </div>
+          <div className="detail-top-actions">
+            <button className="secondary" type="button">Edit</button>
+            {pushTarget ? (
+              <button className="primary" type="button">{`Push changes to ${pushTarget}`}</button>
+            ) : null}
+          </div>
+        </div>
+
+        <div className="tabs" role="tablist" aria-label="Product detail tabs">
+          <button className={`tab${activeTab === "setup" ? " active" : ""}`} type="button" onClick={() => setActiveTab("setup")}>
+            Setup
+          </button>
+          <button
+            className={`tab${activeTab === "localization" ? " active" : ""}`}
+            type="button"
+            onClick={() => setActiveTab("localization")}
+          >
+            Localization
+          </button>
+          <button
+            className={`tab${activeTab === "trial-intro" ? " active" : ""}`}
+            type="button"
+            onClick={() => setActiveTab("trial-intro")}
+          >
+            Trial / intro
+          </button>
+          <button className={`tab${activeTab === "pricing" ? " active" : ""}`} type="button" onClick={() => setActiveTab("pricing")}>
+            Pricing
+          </button>
+          <button
+            className={`tab${activeTab === "relationships" ? " active" : ""}`}
+            type="button"
+            onClick={() => setActiveTab("relationships")}
+          >
+            Relationships
+          </button>
+          <button
+            className={`tab${activeTab === "transactions" ? " active" : ""}`}
+            type="button"
+            onClick={() => setActiveTab("transactions")}
+          >
+            Recent transactions
+          </button>
+        </div>
+
+        {activeTab === "setup" ? (
+          <section className="table-wrap">
+            <table>
+              <tbody>
+                <tr>
+                  <th>Product type</th>
+                  <td>{product.productType.toLowerCase()}</td>
+                </tr>
+                {isSubscription ? (
+                  <tr>
+                    <th>Subscription duration</th>
+                    <td>{product.subscriptionDuration}</td>
+                  </tr>
+                ) : null}
+                {isSubscription ? (
+                  <tr>
+                    <th>Grace period</th>
+                    <td>{product.gracePeriodDays} days</td>
+                  </tr>
+                ) : null}
+                <tr>
+                  <th>Tax category</th>
+                  <td>{product.taxCategory}</td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+        ) : null}
+
+        {activeTab === "localization" ? (
+          <section className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Locale</th>
+                  <th>Display name</th>
+                  <th>Description</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {product.localizations.map((item) => (
+                  <tr key={item.locale}>
+                    <td>{item.locale}</td>
+                    <td>{item.displayName}</td>
+                    <td>{item.description}</td>
+                    <td>{item.status}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        ) : null}
+
+        {activeTab === "trial-intro" ? (
+          <section className="table-wrap">
+            <table>
+              <tbody>
+                <tr>
+                  <th>Free trial configured</th>
+                  <td>{product.trialIntro.freeTrialConfigured ? "Yes" : "No"}</td>
+                </tr>
+                <tr>
+                  <th>Trial duration</th>
+                  <td>{product.trialIntro.trialDuration || "—"}</td>
+                </tr>
+                <tr>
+                  <th>Introductory offer configured</th>
+                  <td>{product.trialIntro.introOfferConfigured ? "Yes" : "No"}</td>
+                </tr>
+                <tr>
+                  <th>Introductory offer</th>
+                  <td>{product.trialIntro.introOfferLabel || "—"}</td>
+                </tr>
+              </tbody>
+            </table>
+          </section>
+        ) : null}
+
+        {activeTab === "pricing" ? (
+          <div className="builder-grid">
+            <div className="builder-col">
+              <section className="builder-card">
+                <h2 className="builder-title">Pricing template</h2>
+                <p className="copy detail-copy">
+                  {product.linkedTemplateName !== "–"
+                    ? `Linked to pricing template ${product.linkedTemplateName}, version ${product.linkedTemplateVersion}.`
+                    : "Not linked to a pricing template."}
+                </p>
+                <div className="detail-inline-actions">
+                  <button className="table-action-link" type="button">Unlink from pricing template</button>
+                  <button className="table-action-link" type="button">Change prices to latest version</button>
+                </div>
+              </section>
+              <section className="builder-card">
+                <h2 className="builder-title">Source</h2>
+                <p className="copy detail-copy">{product.sourceSummary}</p>
+              </section>
+              <section className="builder-card">
+                <h2 className="builder-title">Modifiers</h2>
+                {product.modifierSummaries.length ? (
+                  <ul className="detail-list">
+                    {product.modifierSummaries.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="copy detail-copy">No modifiers.</p>
+                )}
+              </section>
+              <section className="builder-card">
+                <h2 className="builder-title">Store compatibility</h2>
+                {product.storeCompatibilitySummaries.length ? (
+                  <ul className="detail-list">
+                    {product.storeCompatibilitySummaries.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="copy detail-copy">No compatibility warnings.</p>
+                )}
+              </section>
+            </div>
+            <div className="builder-col">
+              <section className="builder-card builder-card-preview">
+                <div className="pricing-preview-head">
+                  <div className="pricing-preview-title-group">
+                    <h2 className="builder-title">{selectedPricingVersionLabel}</h2>
+                    <div className="pricing-version-menu-wrap">
+                      <button
+                        className="pricing-version-trigger"
+                        type="button"
+                        onClick={() => setIsPricingVersionMenuOpen((open) => !open)}
+                        aria-label="Select pricing version"
+                      >
+                        v
+                      </button>
+                      {isPricingVersionMenuOpen ? (
+                        <div className="pricing-version-menu">
+                          <button
+                            className="pricing-version-item"
+                            type="button"
+                            onClick={() => {
+                              setSelectedPricingVersionLabel("Past pricing");
+                              setIsPricingVersionMenuOpen(false);
+                            }}
+                          >
+                            Past pricing (Nov 01, 2025 - Feb 10, 2026)
+                          </button>
+                          <button
+                            className="pricing-version-item"
+                            type="button"
+                            onClick={() => {
+                              setSelectedPricingVersionLabel("Current pricing");
+                              setIsPricingVersionMenuOpen(false);
+                            }}
+                          >
+                            Current pricing (Feb 11, 2026 - Present)
+                          </button>
+                          <button
+                            className="pricing-version-item"
+                            type="button"
+                            onClick={() => {
+                              setSelectedPricingVersionLabel("Future pricing");
+                              setIsPricingVersionMenuOpen(false);
+                            }}
+                          >
+                            Future pricing (Mar 15, 2026 - Jun 30, 2026)
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                  <button className="table-action-link" type="button">Download as CSV</button>
+                </div>
+                <div className="table-wrap preview-table-wrap">
+                  <table className="preview-table">
+                    <thead>
+                      <tr>
+                        <th>Currency</th>
+                        <th>Country</th>
+                        <th>Price</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {product.previewRows.map((row) => (
+                        <tr key={row.key}>
+                          <td>{row.currency}</td>
+                          <td>{row.country || ""}</td>
+                          <td>{row.formattedPrice}</td>
+                          <td />
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </section>
+            </div>
+          </div>
+        ) : null}
+
+        {activeTab === "relationships" ? (
+          <div className="relationship-stack">
+            <section className="table-wrap">
+              <div className="table-header">
+                <span className="table-title">Linked Entitlements</span>
+              </div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Identifier</th>
+                    <th>Description</th>
+                    <th>Created</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {product.linkedEntitlements.map((item) => (
+                    <tr key={item.identifier}>
+                      <td><a className="row-link" href="#">{item.identifier}</a></td>
+                      <td>{item.description}</td>
+                      <td>{item.created}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </section>
+            <section className="table-wrap">
+              <div className="table-header">
+                <span className="table-title">Linked Offerings</span>
+              </div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Identifier</th>
+                    <th>Display Name</th>
+                    <th>Created</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {product.linkedOfferings.map((item) => (
+                    <tr key={item.identifier}>
+                      <td><a className="row-link" href="#">{item.identifier}</a></td>
+                      <td>{item.displayName}</td>
+                      <td>{item.created}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </section>
+          </div>
+        ) : null}
+
+        {activeTab === "transactions" ? (
+          <section className="table-wrap">
+            <div className="table-header">
+              <span className="table-title">Recent Transactions</span>
+              <span className="transactions-toggle">Sandbox</span>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Customer ID</th>
+                  <th>Purchase Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {product.recentTransactions.map((item) => (
+                  <tr key={item.customerId}>
+                    <td>
+                      <span className="transaction-flag">US</span>{" "}
+                      <a className="row-link" href="#">{item.customerId}</a>
+                    </td>
+                    <td>{item.purchaseDate}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </section>
+        ) : null}
+      </div>
+    </section>
   );
 }
 
@@ -389,7 +758,7 @@ function EntitlementsView() {
   );
 }
 
-function PricingView({ onCreateTemplate, onOpenTemplateDetail, onDeleteTemplate, templates }) {
+function PricingView({ onCreateTemplate, onDuplicateTemplate, onOpenTemplateDetail, onDeleteTemplate, templates }) {
   const [openActionsIndex, setOpenActionsIndex] = useState(null);
   const [createProductsForRow, setCreateProductsForRow] = useState(null);
   const [appSelections, setAppSelections] = useState({
@@ -505,6 +874,16 @@ function PricingView({ onCreateTemplate, onOpenTemplateDetail, onDeleteTemplate,
                           }}
                         >
                           Create products from template
+                        </button>
+                        <button
+                          className="overflow-menu-item"
+                          type="button"
+                          onClick={() => {
+                            onDuplicateTemplate(row.id);
+                            setOpenActionsIndex(null);
+                          }}
+                        >
+                          Duplicate
                         </button>
                         <button
                           className="overflow-menu-item overflow-menu-item-danger"
@@ -1596,6 +1975,7 @@ export default function App() {
   const [templateEditorMode, setTemplateEditorMode] = useState("create");
   const [editingTemplateId, setEditingTemplateId] = useState(null);
   const [viewingTemplateId, setViewingTemplateId] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   const crumbLabel = useMemo(() => {
     const found = tabs.find((tab) => tab.id === activeTab);
@@ -1619,6 +1999,17 @@ export default function App() {
     setPage("template-detail");
   };
 
+  const duplicateTemplate = (templateId) => {
+    const template = templates.find((item) => item.id === templateId);
+    if (!template) {
+      return;
+    }
+    setTemplateEditorMode("create");
+    setEditingTemplateId(null);
+    setDraftTemplateName(`${template.name} (copy)`);
+    setPage("new-pricing-template");
+  };
+
   const editTemplate = (templateId) => {
     const template = templates.find((item) => item.id === templateId);
     if (!template) {
@@ -1633,6 +2024,79 @@ export default function App() {
   const goToPricingTab = () => {
     setPage("catalog");
     setActiveTab("pricing");
+  };
+
+  const goToProductsTab = () => {
+    setPage("catalog");
+    setActiveTab("products");
+  };
+
+  const openProductDetail = (storeTitle, row) => {
+    const linkedTemplate = templates.find((template) => template.name === row.pricingTemplate) || null;
+    const latestVersion = linkedTemplate ? linkedTemplate.versions[linkedTemplate.versions.length - 1] : null;
+    const productType = row.product.includes("gift") ? "Consumable" : "Subscription";
+    const subscriptionDuration = row.product.includes("annual")
+      ? "Annual"
+      : row.product.includes("weekly")
+        ? "Weekly"
+        : "Monthly";
+
+    setSelectedProduct({
+      name: row.product,
+      appName: storeTitle,
+      status: "Published",
+      productType,
+      subscriptionDuration,
+      gracePeriodDays: 7,
+      taxCategory: "Digital app sales",
+      linkedTemplateName: row.pricingTemplate,
+      linkedTemplateVersion: latestVersion ? latestVersion.number : "—",
+      sourceSummary: latestVersion ? latestVersion.sourceSummary : "No linked pricing source.",
+      modifierSummaries: latestVersion ? latestVersion.modifierSummaries : [],
+      storeCompatibilitySummaries: latestVersion ? latestVersion.storeCompatibilitySummaries : [],
+      previewRows: latestVersion ? latestVersion.previewRows : makeSeededPreviewRows(9.99),
+      linkedEntitlements: [
+        { identifier: "subscriptions", description: "Subscriptions", created: "Sep 04, 2018" }
+      ],
+      linkedOfferings: [
+        { identifier: "default", displayName: "our standard set of packages", created: "May 19, 2020" },
+        { identifier: "lowercost-us-4899", displayName: "AB test for lowercost us", created: "Feb 13, 2023" },
+        { identifier: "30_percent_off_flash_sale", displayName: "305 off flash sale", created: "Feb 25, 2025" }
+      ],
+      localizations: [
+        {
+          locale: "English (US)",
+          displayName: "Dipsea Premium",
+          description: "Full access to stories and sleep content.",
+          status: "Published"
+        },
+        {
+          locale: "Spanish (ES)",
+          displayName: "Dipsea Premium",
+          description: "Acceso completo a historias y contenido para dormir.",
+          status: "In review"
+        },
+        {
+          locale: "French (FR)",
+          displayName: "Dipsea Premium",
+          description: "Acces complet aux histoires et contenus de sommeil.",
+          status: "Published"
+        }
+      ],
+      trialIntro: {
+        freeTrialConfigured: true,
+        trialDuration: "7 days",
+        introOfferConfigured: true,
+        introOfferLabel: "50% off for 3 months"
+      },
+      recentTransactions: [
+        { customerId: "0Bxy6CzYtATLbYMtp6eaOQSCItx1", purchaseDate: "Feb 18, 2026" },
+        { customerId: "jPxOKRNk27ZFbQQLEL7xgeZeJN92", purchaseDate: "Feb 18, 2026" },
+        { customerId: "xntUmIlfklQkKpM6yxotTPBd1463", purchaseDate: "Feb 18, 2026" },
+        { customerId: "AF88pUxuksOo0msacJvvVnrwogq1", purchaseDate: "Feb 18, 2026" }
+      ]
+    });
+    setPage("product-detail");
   };
 
   const saveTemplate = () => {
@@ -1744,10 +2208,11 @@ export default function App() {
                 </div>
 
                 {activeTab === "offerings" ? <OfferingsView /> : null}
-                {activeTab === "products" ? <ProductsView /> : null}
+                {activeTab === "products" ? <ProductsView onOpenProductDetail={openProductDetail} /> : null}
                 {activeTab === "pricing" ? (
                   <PricingView
                     onCreateTemplate={createTemplate}
+                    onDuplicateTemplate={duplicateTemplate}
                     onOpenTemplateDetail={openTemplateDetail}
                     onDeleteTemplate={deleteTemplate}
                     templates={templates}
@@ -1765,6 +2230,14 @@ export default function App() {
               template={selectedTemplate}
               onEditTemplate={() => editTemplate(selectedTemplate.id)}
               onBackToPricing={goToPricingTab}
+            />
+          ) : null}
+
+          {page === "product-detail" && selectedProduct ? (
+            <ProductDetailPage
+              key={selectedProduct.name}
+              product={selectedProduct}
+              onBackToProducts={goToProductsTab}
             />
           ) : null}
 
