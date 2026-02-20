@@ -149,6 +149,15 @@ const productSeed = (productId) => {
   return 5 + (sum % 600) / 100;
 };
 
+const formatConversionAsOf = (timestamp) =>
+  new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "2-digit",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
+  }).format(new Date(timestamp));
+
 const makeSeededPreviewRows = (baseUsd) =>
   previewTemplateRows.map((row, index) => {
     const rate = fxRates[row.currency] || 1;
@@ -1234,6 +1243,7 @@ function NewPricingTemplatePage({ mode, templateName, onTemplateNameChange }) {
   const [currency, setCurrency] = useState("USD");
   const [amount, setAmount] = useState("");
   const [convertUsing, setConvertUsing] = useState("Currency exchange rates");
+  const [sourceConversionAsOf, setSourceConversionAsOf] = useState(() => Date.now());
   const [existingProduct, setExistingProduct] = useState(productsRows[0][0]);
   const [geoAvailabilityAllCountries, setGeoAvailabilityAllCountries] = useState(true);
   const [geoAvailabilityCountries, setGeoAvailabilityCountries] = useState([]);
@@ -1247,6 +1257,7 @@ function NewPricingTemplatePage({ mode, templateName, onTemplateNameChange }) {
   const [missingGeosResolution, setMissingGeosResolution] = useState("Make product unavailable in the missing geos");
   const [missingGeosReferencePrice, setMissingGeosReferencePrice] = useState(getPreviewRowKey("USD", "United States"));
   const [missingGeosConvertUsing, setMissingGeosConvertUsing] = useState("Currency exchange rates");
+  const [missingGeosConversionAsOf, setMissingGeosConversionAsOf] = useState(() => Date.now());
   const previewRows = useMemo(
     () =>
       previewTemplateRows.map((row) => ({
@@ -1537,12 +1548,25 @@ function NewPricingTemplatePage({ mode, templateName, onTemplateNameChange }) {
                         id="convert-using"
                         className="field-control"
                         value={convertUsing}
-                        onChange={(event) => setConvertUsing(event.target.value)}
+                        onChange={(event) => {
+                          setConvertUsing(event.target.value);
+                          setSourceConversionAsOf(Date.now());
+                        }}
                       >
                         {convertUsingOptions.map((option) => (
                           <option key={option} value={option}>{option}</option>
                         ))}
                       </select>
+                      <p className="conversion-note">
+                        {`Using conversion rates as of ${formatConversionAsOf(sourceConversionAsOf)}. `}
+                        <button
+                          className="table-action-link conversion-note-link"
+                          type="button"
+                          onClick={() => setSourceConversionAsOf(Date.now())}
+                        >
+                          Update conversion rates
+                        </button>
+                      </p>
                     </div>
                     <div className="field">
                       <label className="field-label">Geo availability</label>
@@ -1908,12 +1932,25 @@ function NewPricingTemplatePage({ mode, templateName, onTemplateNameChange }) {
                             id="missing-geos-convert-using"
                             className="field-control"
                             value={missingGeosConvertUsing}
-                            onChange={(event) => setMissingGeosConvertUsing(event.target.value)}
+                            onChange={(event) => {
+                              setMissingGeosConvertUsing(event.target.value);
+                              setMissingGeosConversionAsOf(Date.now());
+                            }}
                           >
                             {convertUsingOptions.map((option) => (
                               <option key={option} value={option}>{option}</option>
                             ))}
                           </select>
+                          <p className="conversion-note">
+                            {`Using conversion rates as of ${formatConversionAsOf(missingGeosConversionAsOf)}. `}
+                            <button
+                              className="table-action-link conversion-note-link"
+                              type="button"
+                              onClick={() => setMissingGeosConversionAsOf(Date.now())}
+                            >
+                              Update conversion rates
+                            </button>
+                          </p>
                         </div>
                       </>
                     ) : null}
